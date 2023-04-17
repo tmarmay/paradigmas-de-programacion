@@ -1,3 +1,4 @@
+
 ---
 title: Lab de Programación Funcional
 author: Cátedra de Paradigmas

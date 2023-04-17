@@ -5,15 +5,49 @@ module Interp (
     initial
 ) where
 
-import Graphics.Gloss(Picture, Display(InWindow), makeColorI, color, pictures, translate, white, display)
+import Graphics.Gloss(Picture, Display(InWindow) ,makeColorI, color, pictures, translate, white, display)
 import Dibujo (Dibujo, foldDib)
-import FloatingPic (FloatingPic, Output, grid)
+import FloatingPic (FloatingPic, Output, grid,half,zero)
 
+import qualified Graphics.Gloss.Data.Point.Arithmetic as V
 
+rotar :: FloatingPic -> FloatingPic
+rotar f x w h = f (x V.+ w) (h) (zero V.- w)
+
+rot45 :: FloatingPic -> FloatingPic
+rot45 f x w h = f (x V.+ (half (w V.+ h)))  (half (w V.+ h)) (half(h V.- w))
+
+espejar :: FloatingPic -> FloatingPic
+espejar f x w h = f (x V.+ w) (zero V.- w) (h)
+
+encimar :: FloatingPic -> FloatingPic -> FloatingPic 
+encimar f g x w h = pictures [(f x w h),(g x w h)]
+
+juntar :: Float -> Float -> FloatingPic -> FloatingPic -> FloatingPic
+juntar n m f g x w h = pictures [(f x w' h),(g (x V.+ w') (r' V.* w) h)]
+    where 
+        r = m/(m+n)
+        r'= n/(m+n)
+        w' = r V.* w
+
+apilar :: Float -> Float -> FloatingPic -> FloatingPic -> FloatingPic
+apilar n m f g x w h = pictures [(f (x V.+ h') w (r V.* h)),(g x w h')]
+    where 
+        r = m/(m+n)
+        r'= n/(m+n)
+        h' = r' V.* h
+        
 -- Interpretación de un dibujo
 -- formulas sacadas del enunciado
+{-  
+    type FloatingPic = Vector -> Vector -> Vector -> Picture
+    type Output a = a -> FloatingPic
+
+    interp :: (a -> FloatingPic -> Dibujo a) -> FloatingPic
+-}
 interp :: Output a -> Output (Dibujo a)
-interp = undefined
+interp f d = foldDib f rotar espejar rot45 apilar juntar encimar d
+
 
 -- Configuración de la interpretación
 data Conf = Conf {
